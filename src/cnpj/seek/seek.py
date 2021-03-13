@@ -21,32 +21,42 @@ def table(ifile, i: int) -> str:
 def bisect(ifile, i: int, k: int, keys: set):
     if i >= k:
         return
-    else:
-        j: int = math.floor((i + k) / 2)
+    
+    j: int = math.floor((i + k) / 2)
 
     key_i: str = table(ifile, i)
     key_j: str = table(ifile, j)
     key_k: str = table(ifile, k)
 
-    keys_i = set()
-    keys_k = set()
-
-    for key in keys:
-        if key == key_i:
-            yield (i, True)
-        elif key == key_j:
-            yield (j, True)
-        elif key == key_k:
-            yield (k, True)
-        elif key_i < key < key_j:
-            keys_i.add(key)
-        elif key_j < key < key_k:
-            keys_k.add(key)
-        else:
-            yield (key, False)
-
-    if keys_i: yield from bisect(ifile, i, j, keys_i)
-    if keys_k: yield from bisect(ifile, j, k, keys_k)
+    if (k - i) == 1:
+        for key in keys:
+            if key == key_i:
+                yield (i, True)
+            elif key == key_j:
+                yield (j, True)
+            elif key == key_k:
+                yield (k, True)
+            else:
+                yield (key, False)
+    else:
+        keys_i = set()
+        keys_k = set()
+        for key in keys:
+            if key == key_i:
+                yield (i, True)
+            elif key == key_j:
+                yield (j, True)
+            elif key == key_k:
+                yield (k, True)
+            elif key_i < key < key_j:
+                keys_i.add(key)
+            elif key_j < key < key_k:
+                keys_k.add(key)
+            else:
+                yield (key, False)
+            
+        if keys_i: yield from bisect(ifile, i, j, keys_i)
+        if keys_k: yield from bisect(ifile, j, k, keys_k)
 
 def retrieve(ifile, indices: list):
     global PATH
