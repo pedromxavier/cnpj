@@ -1,6 +1,7 @@
 import os
 import re
 import json
+import math
 import argparse
 
 from ..cnpjlib import open_local
@@ -16,10 +17,14 @@ def find(ifile, keys: set):
 
     yield from bisect(ifile, i, j, k, keys)
 
+def table(ifile, i: int):
+    ifile.seek(40 * i)
+    return ifile.read(40).decode('utf-8')
+
 def bisect(ifile, i: int, j: int, k: int, keys: set):
-    ifile.seek(40 * i); key_i: str = ifile.read(14).decode('utf-8')
-    ifile.seek(40 * j); key_j: str = ifile.read(14).decode('utf-8')
-    ifile.seek(40 * k); key_k: str = ifile.read(14).decode('utf-8')
+    key_i: str = table(ifile, i)
+    key_j: str = table(ifile, j)
+    key_k: str = table(ifile, k)
 
     keys_i = set()
     keys_k = set()
@@ -38,8 +43,8 @@ def bisect(ifile, i: int, j: int, k: int, keys: set):
         else:
             yield (key, False)
 
-    if keys_i: yield from bisect(ifile, i, (i + j) // 2, j, keys_i)
-    if keys_k: yield from bisect(ifile, j, (j + k) // 2, k, keys_k)
+    if keys_i: yield from bisect(ifile, i, math.floor((i + j) / 2), j, keys_i)
+    if keys_k: yield from bisect(ifile, j, math.ceil((j + k) / 2), k, keys_k)
 
 def retrieve(ifile, indices: list):
     global PATH
