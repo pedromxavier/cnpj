@@ -1,7 +1,4 @@
-#!/usr/bin/env/ python3
-import os
-import sys
-sys.path.append(os.path.join('..', 'src'))
-from cnpj import main
-if __name__ == '__main_':
+#!/usr/bin/env python3
+if __name__ == '__main__':
+    from cnpj import main
     main()
