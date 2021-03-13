@@ -10,6 +10,7 @@ def main() -> int:
             "description": __doc__
     }
     parser = argparse.ArgumentParser(**params)
+    parser.set_defaults(func=None)
 
     subparsers = parser.add_subparsers()
 
@@ -27,7 +28,8 @@ def main() -> int:
     index_parser.set_defaults(func=index)
 
     args = parser.parse_args()
-    args.func(args)
+    if args.func is not None:
+        args.func(args)
 
     return 0
 
