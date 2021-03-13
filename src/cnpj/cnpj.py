@@ -16,7 +16,7 @@ def main() -> int:
 
     seek_parser = subparsers.add_parser('seek')
     seek_parser.add_argument('file', type=str, action='store', help="Arquivo contendo os CNPJ's desejados.")
-    seek_parser.add_argument('-p', '--path', dest='pasth', type=str, action='store')
+    seek_parser.add_argument('-p', '--path', dest='path', type=str, action='store')
     seek_parser.set_defaults(func=seek)
 
     load_parser = subparsers.add_parser('load')
