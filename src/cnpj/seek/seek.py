@@ -3,7 +3,7 @@ import re
 import json
 import argparse
 
-from ..cnpjlib import open_data
+from ..cnpjlib import open_local
 
 RE_CNPJ = re.compile(r'([0-9]{2})\.([0-9]{3})\.([0-9]{3})\/([0-9]{4})\-([0-9]{2})')
 
@@ -94,12 +94,11 @@ def seek(args: argparse.Namespace):
             else:
                 keys.add(RE_CNPJ.sub(r'\1\2\3\4\5', s))
 
-    if args.path is None:
-        with open_data('cnpj.index', 'rb') as ifile:
-            data = retrieve(ifile, list(find(ifile, keys)))
-    else:
-        with open(os.path.join(args.path, 'cnpj.index'), 'rb') as ifile:
-            data = retrieve(ifile, list(find(ifile, keys)))
+    if not keys:
+        return
+
+    with open_local('cnpj.index', path=args.path, mode='rb') as ifile:
+        data = retrieve(ifile, list(find(ifile, keys)))
 
     with open('cnpj.json', 'w') as jfile:
         json.dump(data, jfile)
