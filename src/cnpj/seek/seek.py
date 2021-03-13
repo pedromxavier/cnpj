@@ -10,18 +10,20 @@ RE_CNPJ = re.compile(r'([0-9]{2})\.([0-9]{3})\.([0-9]{3})\/([0-9]{4})\-([0-9]{2}
 
 PATH = r'K3241.K032001K.CNPJ.D01120.L000{:02d}'
 
-def find(ifile, keys: set):
+def find(ifile, keys: set) -> list:
     size = int(ifile.read(40).decode('utf-8'))
+    return list(bisect(ifile, 1,  size, keys))
 
-    i = 1; j = (size + 1) // 2; k = size
-
-    yield from bisect(ifile, i, j, k, keys)
-
-def table(ifile, i: int):
+def table(ifile, i: int) -> str:
     ifile.seek(40 * i)
     return ifile.read(40).decode('utf-8')
 
-def bisect(ifile, i: int, j: int, k: int, keys: set):
+def bisect(ifile, i: int, k: int, keys: set):
+    if i >= k:
+        return
+    else:
+        j: int = math.floor((i + k) / 2)
+
     key_i: str = table(ifile, i)
     key_j: str = table(ifile, j)
     key_k: str = table(ifile, k)
@@ -43,8 +45,8 @@ def bisect(ifile, i: int, j: int, k: int, keys: set):
         else:
             yield (key, False)
 
-    if keys_i: yield from bisect(ifile, i, math.floor((i + j) / 2), j, keys_i)
-    if keys_k: yield from bisect(ifile, j, math.ceil((j + k) / 2), k, keys_k)
+    if keys_i: yield from bisect(ifile, i, j, keys_i)
+    if keys_k: yield from bisect(ifile, j, k, keys_k)
 
 def retrieve(ifile, indices: list):
     global PATH
@@ -103,7 +105,7 @@ def seek(args: argparse.Namespace):
         return
 
     with open_local('cnpj.index', path=args.path, mode='rb') as ifile:
-        data = retrieve(ifile, list(find(ifile, keys)))
+        data = retrieve(ifile, find(ifile, keys))
 
     with open('cnpj.json', 'w') as jfile:
         json.dump(data, jfile)
