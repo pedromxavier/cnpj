@@ -17,9 +17,9 @@ def find(ifile, keys: set):
     yield from bisect(ifile, i, j, k, keys)
 
 def bisect(ifile, i: int, j: int, k: int, keys: set):
-    ifile.seek(40 * i); key_i = ifile.read(14).encode('utf-8')
-    ifile.seek(40 * j); key_j = ifile.read(14).encode('utf-8')
-    ifile.seek(40 * k); key_k = ifile.read(14).encode('utf-8')
+    ifile.seek(40 * i); key_i: str = ifile.read(14).decode('utf-8')
+    ifile.seek(40 * j); key_j: str = ifile.read(14).decode('utf-8')
+    ifile.seek(40 * k); key_k: str = ifile.read(14).decode('utf-8')
 
     keys_i = set()
     keys_k = set()
