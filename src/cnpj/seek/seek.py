@@ -88,7 +88,7 @@ def seek(args: argparse.Namespace):
 
     with open(args.file, 'r') as file:
         for line in file:
-            s =  line.rstrip('\n')
+            s = line.rstrip('\n')
             if RE_CNPJ.match(s) is None:
                 continue
             else:
@@ -100,8 +100,6 @@ def seek(args: argparse.Namespace):
     else:
         with open(os.path.join(args.path, 'cnpj.index'), 'rb') as ifile:
             data = retrieve(ifile, list(find(ifile, keys)))
-
-    
 
     with open('cnpj.json', 'w') as jfile:
         json.dump(data, jfile)

@@ -30,6 +30,8 @@ def main() -> int:
     args = parser.parse_args()
     if args.func is not None:
         args.func(args)
+    else:
+        parser.print_help()
 
     return 0
 
