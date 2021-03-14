@@ -97,7 +97,7 @@ def retrieve(ifile, indices: list):
                 file.seek(int(seek))
                 block = file.read(1200)
 
-            found[cnpj] = str(block)
+            found[cnpj] = block.decode('utf-8')
 
     return {
         'found': found,
