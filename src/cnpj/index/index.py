@@ -28,7 +28,9 @@ FILE_INDEX = tuple(range(1, 21))
 
 def read_block(file) -> (str, bytes):
     global BLOCK_SIZE
-    return file.read(BLOCK_SIZE).decode('utf-8'), file.read(1)
+    block = file.read(BLOCK_SIZE).decode('utf-8')
+    s = file.read(1) ## sep
+    return (block, s)
 
 def read_entry(file, ifile, seek:int, i: int) -> (dict, bool):
     global T_HEADER, T_ENTERP, T_PERSON, T_CNAESC, T_TRAILL, ENDL
