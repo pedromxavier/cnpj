@@ -23,7 +23,7 @@ def find(ifile, keys: set, algorithm: str='bisect') -> list:
 
 def table(ifile, i: int) -> str:
     ifile.seek(40 * i)
-    return ifile.read(40).decode('utf-8')
+    return ifile.read(14).decode('utf-8')
 
 def naive(ifile, i: int, n: int, keys: set):
     missing = keys.copy()
@@ -134,5 +134,8 @@ def seek(args: argparse.Namespace):
     with open_local('cnpj.index', path=args.path, mode='rb') as ifile:
         data = retrieve(ifile, find(ifile, keys, algorithm=args.algorithm))
 
-    with open('cnpj.json', 'w') as jfile:
+    
+    fname, *_ = os.path.splitext(os.path.basename(args.file))
+
+    with open(f'{fname}.json', 'w') as jfile:
         json.dump(data, jfile)
