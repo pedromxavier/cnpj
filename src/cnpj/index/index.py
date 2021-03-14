@@ -27,8 +27,7 @@ BLOCK_SIZE = 1200
 FILE_INDEX = tuple(range(1, 21))
 
 def read_block(file) -> (str, bytes):
-    global BLOCK_SIZE
-    block = file.read(BLOCK_SIZE).decode('utf-8')
+    block = file.read(1200).decode('utf-8')
     s = file.read(1) ## sep
     return (block, s)
 
