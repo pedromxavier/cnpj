@@ -63,7 +63,7 @@ def read_header(file):
 
 def read_enterp(file, ifile, i: int=0) -> bool:
     # Get initial position
-    seek = file.tell()
+    seek = file.tell() - 1
     
     # Discard some things
     file.seek(2, os.SEEK_CUR)
