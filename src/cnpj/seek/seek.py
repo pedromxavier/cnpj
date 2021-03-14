@@ -10,13 +10,28 @@ RE_CNPJ = re.compile(r'([0-9]{2})\.([0-9]{3})\.([0-9]{3})\/([0-9]{4})\-([0-9]{2}
 
 PATH = r'K3241.K032001K.CNPJ.D01120.L000{:02d}'
 
-def find(ifile, keys: set) -> list:
+def find(ifile, keys: set, algorithm: str='bisect') -> list:
     size = int(ifile.read(40).decode('utf-8'))
-    return list(bisect(ifile, 1,  size, keys))
+    if algorithm == 'bisect':
+        return list(bisect(ifile, 1,  size, keys))
+    elif algorithm == 'naive':
+        return list(naive(ifile, 1, size, keys))
+    else:
+        raise NameError(f'Unknown algorithm {algorithm}.')
 
 def table(ifile, i: int) -> str:
     ifile.seek(40 * i)
     return ifile.read(40).decode('utf-8')
+
+def naive(ifile, i: int, n: int, keys: set):
+    missing = keys.copy()
+    for j in range(i, n + 1):
+        key = table(ifile, j)
+        if key in missing:
+            missing.remove(key)
+            yield (j, True)
+    else:
+        for key in missing: yield (key, False)
 
 def bisect(ifile, i: int, k: int, keys: set):
     if i >= k:
@@ -115,7 +130,7 @@ def seek(args: argparse.Namespace):
         return
 
     with open_local('cnpj.index', path=args.path, mode='rb') as ifile:
-        data = retrieve(ifile, find(ifile, keys))
+        data = retrieve(ifile, find(ifile, keys, algorithm=args.algorithm))
 
     with open('cnpj.json', 'w') as jfile:
         json.dump(data, jfile)
