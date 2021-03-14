@@ -32,6 +32,8 @@ def naive(ifile, i: int, n: int, keys: set):
         if key in missing:
             missing.remove(key)
             yield (j, True)
+        else:
+            print(f"miss: {key}")
     else:
         for key in missing: yield (key, False)
 
@@ -134,8 +136,9 @@ def seek(args: argparse.Namespace):
     with open_local('cnpj.index', path=args.path, mode='rb') as ifile:
         data = retrieve(ifile, find(ifile, keys, algorithm=args.algorithm))
 
-    
     fname, *_ = os.path.splitext(os.path.basename(args.file))
+
+    print(f"Writing seek results to {fname}.json")
 
     with open(f'{fname}.json', 'w') as jfile:
         json.dump(data, jfile)
