@@ -32,8 +32,6 @@ def naive(ifile, i: int, n: int, keys: set):
         if key in missing:
             missing.remove(key)
             yield (j, True)
-        else:
-            print(f"miss: {key}")
     else:
         for key in missing: yield (key, False)
 
