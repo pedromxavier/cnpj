@@ -62,21 +62,19 @@ def read_header(file):
     return False
 
 def read_enterp(file, ifile, i: int=0) -> bool:
-    # Here things get intersting
+    # Get initial position
+    seek: int = file.tell()
     
     # Discard some things
-    file.seek(3, os.SEEK_CUR)
+    file.seek(2, os.SEEK_CUR)
 
-    cnpj = sys.intern(file.read(14).decode('utf-8'))
-
-    ifile.write(f"{cnpj}{i:02d}{file.tell() - 17:024d}".encode('utf-8'))
+    ifile.write(file.read(14))
+    ifile.write(f"{i:02d}{seek:024d}".encode('utf-8'))
 
     # Discard some things
-    file.seek(1182, os.SEEK_CUR)
+    file.seek(1183, os.SEEK_CUR)
 
     return True
-
-
     
 def index(args: argparse.Namespace):
     global FILE_INDEX, PATH
@@ -106,7 +104,7 @@ def index(args: argparse.Namespace):
             ifile.seek(0)
             ifile.write(f"{size:040d}".encode('utf-8'))
     print("All files indexed." + " " * 40)
-    
+
     print("Sorting Index")
     with open_local('cnpj.index', path=args.path, mode='rb') as ifile:
         size = int(ifile.read(40).decode('utf-8'))
