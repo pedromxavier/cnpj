@@ -13,8 +13,10 @@ PATH = r'K3241.K032001K.CNPJ.D01120.L000{:02d}'
 def find(ifile, keys: set, algorithm: str='bisect') -> list:
     size = int(ifile.read(40).decode('utf-8'))
     if algorithm == 'bisect':
-        return list(bisect(ifile, 1,  size, keys))
+        print("Running bisection Algorithm on seek...")
+        return list(bisect(ifile, 1, size, keys))
     elif algorithm == 'naive':
+        print("Running naïve Algorithm on seek...")
         return list(naive(ifile, 1, size, keys))
     else:
         raise NameError(f'Unknown algorithm {algorithm}.')
