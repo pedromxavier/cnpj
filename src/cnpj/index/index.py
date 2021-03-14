@@ -27,7 +27,7 @@ BLOCK_SIZE = 1200
 FILE_INDEX = tuple(range(1, 21))
 
 def read_block(file) -> (str, bytes):
-    block = file.read(1200).decode('utf-8')
+    block = file.read(1200).decode(encoding='utf8')
     s = file.read(1) ## sep
     return (block, s)
 
@@ -73,10 +73,8 @@ def index(args: argparse.Namespace):
         ifile.write(f"{size:040d}".encode('utf-8'))
 
         for i in FILE_INDEX:
-
             fname = PATH.format(i)
             print(f"Indexing <{fname}>", end='\r')
-    
             with open_local(fname, path=args.path, mode='rb') as file:
                 # We don't know the actual size for all contents.
                 while True:
