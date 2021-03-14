@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 import sys
 import os
 import re
@@ -23,86 +22,79 @@ T_PERSON = sys.intern('2')
 T_CNAESC = sys.intern('6')
 T_TRAILL = sys.intern('9')
 
-ENDL = sys.intern('\n')
-
+ENDL = '\n'.encode('utf-8')
+BLOCK_SIZE = 1200
 FILE_INDEX = tuple(range(1, 21))
 
-def read_entry(file, ifile, i: int) -> (dict, bool):
+def read_block(file) -> (str, bytes):
+    global BLOCK_SIZE
+    return file.read(BLOCK_SIZE).decode('utf-8'), file.read(1)
+
+def read_entry(file, ifile, seek:int, i: int) -> (dict, bool):
     global T_HEADER, T_ENTERP, T_PERSON, T_CNAESC, T_TRAILL, ENDL
+
+    block, s = read_block(file)
+
     # Entry Type
-    c = sys.intern(file.read(1).decode('utf-8'))
+    c = sys.intern(block[0])
 
     if c is T_HEADER:
-        code = read_header(file)
+        return None if not s else False
     elif c is T_ENTERP:
-        code = read_enterp(file, ifile, i)
+        return read_enterp(block, ifile, seek=seek, i=i)
     elif c is T_PERSON:
-        code = read_header(file)
+        return None if not s else False
     elif c is T_CNAESC:
-        code = read_header(file)
+        return None if not s else False
     elif c is T_TRAILL:
-        code = read_header(file)
+        return None if not s else False
     elif not c:
         return None
     else:
         raise ReadError(f"Invalid char <{c} @ {file.tell()}>")
 
-    c = sys.intern(file.read(1).decode('utf-8'))
-
-    if not c: # trailing endl or EOF
-        return None
-    elif c is not ENDL:
-        raise ReadError(f"Invalid endl <{c}> @ {file.tell()}")
-    else:
-        return code
-
-def read_header(file):
+def read_header(block: str):
     # Discard content
-    file.seek(1199, os.SEEK_CUR)
     return False
 
-def read_enterp(file, ifile, i: int=0) -> bool:
+def read_enterp(block, ifile, seek: int, i: int=0) -> bool:
     # Get initial position
-    seek: int = file.tell()
-    
-    # Discard some things
-    file.seek(2, os.SEEK_CUR)
-
-    ifile.write(file.read(14))
-    ifile.write(f"{i:02d}{seek:024d}".encode('utf-8'))
-
-    # Discard some things
-    file.seek(1183, os.SEEK_CUR)
-
+    ifile.write(f"{block[3:17]}{i:02d}{seek:024d}".encode('utf-8'))
     return True
     
 def index(args: argparse.Namespace):
     global FILE_INDEX, PATH
 
-    code = None
     size = 0
+    code = None
     with open_local('cnpj.index', path=args.path, mode='wb') as ifile:
+        # Reserve space for header BLOCK = 40 bytes
         ifile.write(f"{size:040d}".encode('utf-8'))
+
         for i in FILE_INDEX:
+
             fname = PATH.format(i)
             print(f"Indexing <{fname}>", end='\r')
+    
             with open_local(fname, path=args.path, mode='rb') as file:
+                # We don't know the actual size for all contents.
                 while True:
                     try:
-                        code = read_entry(file, ifile, i)
+                        code = read_entry(file, ifile, file.tell(), i)
                     except ReadError as error:
                         print(f"ReadError: {error.msg}")
                         return
-                    else:
-                        if code is None:
-                            break
-                        elif code is True:
-                            size += 1
-                        else:
-                            continue
+
+                    if code is None:
+                        break
+                    elif code is True:
+                        size += 1
+                    elif code is False:
+                        continue
         else:
             ifile.seek(0)
             ifile.write(f"{size:040d}".encode('utf-8'))
+
     print("All files indexed." + " " * 40)
 
     print("Sorting Index")
@@ -113,4 +105,5 @@ def index(args: argparse.Namespace):
     with open_local('cnpj.index', path=args.path, mode='wb') as ifile:
         ifile.write(f"{size:040d}".encode('utf-8'))
         ifile.write(data)
+
     print("Finished indexing data.")
