@@ -87,7 +87,7 @@ def index(args: argparse.Namespace):
         ifile.write(f"{size:040d}".encode('utf-8'))
         for i in FILE_INDEX:
             fname = PATH.format(i)
-            print(f"Reading <{fname}>")
+            print(f"Indexing <{fname}>")
             with open_local(fname, path=args.path, mode='rb') as file:
                 while True:
                     try:
@@ -105,3 +105,13 @@ def index(args: argparse.Namespace):
         else:
             ifile.seek(0)
             ifile.write(f"{size:040d}".encode('utf-8'))
+
+    print("Sorting Index")
+    with open_local('cnpj.index', path=args.path, mode='rb') as ifile:
+        size = int(ifile.read(40).decode('utf-8'))
+        data = b''.join(sorted((ifile.read(40) for _ in range(size))))
+
+    with open_local('cnpj.index', path=args.path, mode='wb') as ifile:
+        ifile.seek(40)
+        ifile.write(data)
+    print("Finished indexing data.")
