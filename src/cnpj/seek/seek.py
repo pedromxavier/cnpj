@@ -122,7 +122,7 @@ def seek(args: argparse.Namespace):
 
     with open(args.file, 'r') as file:
         for line in file:
-            s = line.rstrip('\n')
+            s = line.rstrip(' \n\t')
             if RE_CNPJ.match(s) is None:
                 continue
             else:
