@@ -109,10 +109,10 @@ def read_block(block: bytes):
     return {
         'cnpj': info[3:17],
         'matriz': (info[17] == '1'),
-        'nome': info[18:168],
-        'fantasia': info[168:223],
-        'cnae': info[375:382],
-        'cep': info[674:682]
+        'nome': info[18:168].rstrip(' \n\t'),
+        'fantasia': info[168:223].rstrip(' \n\t'),
+        'cnae': info[375:382].rstrip(' \n\t'),
+        'cep': info[674:682].rstrip(' \n\t')
     }
 
 def seek(args: argparse.Namespace):
