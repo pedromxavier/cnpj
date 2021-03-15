@@ -9,23 +9,25 @@ import argparse
 
 from ..cnpjlib import open_local, ENCODING
 
+
 class ReadError(Exception):
-    
     def __init__(self, msg):
         Exception.__init__(self)
         self.msg = msg
 
-PATH = r'K3241.K032001K.CNPJ.D01120.L000{:02d}'
 
-T_HEADER = sys.intern('0')
-T_ENTERP = sys.intern('1')
-T_PERSON = sys.intern('2')
-T_CNAESC = sys.intern('6')
-T_TRAILL = sys.intern('9')
+PATH = r"K3241.K032001K.CNPJ.D01120.L000{:02d}"
 
-ENDL = sys.intern('\n')
+T_HEADER = sys.intern("0")
+T_ENTERP = sys.intern("1")
+T_PERSON = sys.intern("2")
+T_CNAESC = sys.intern("6")
+T_TRAILL = sys.intern("9")
+
+ENDL = sys.intern("\n")
 
 FILE_INDEX = tuple(range(1, 21))
+
 
 def read_entry(file, ifile, i: int) -> (dict, bool):
     global T_HEADER, T_ENTERP, T_PERSON, T_CNAESC, T_TRAILL, ENDL
@@ -49,22 +51,24 @@ def read_entry(file, ifile, i: int) -> (dict, bool):
 
     c = sys.intern(file.read(1).decode(ENCODING))
 
-    if not c: # trailing endl or EOF
+    if not c:  # trailing endl or EOF
         return None
     elif c is not ENDL:
         raise ReadError(f"Invalid endl <{c}> @ {file.tell()}")
     else:
         return code
 
+
 def read_header(file):
     # Discard content
     file.seek(1199, os.SEEK_CUR)
     return False
 
-def read_enterp(file, ifile, i: int=0) -> bool:
+
+def read_enterp(file, ifile, i: int = 0) -> bool:
     # Get initial position
     seek = file.tell() - 1
-    
+
     # Discard some things
     file.seek(2, os.SEEK_CUR)
 
@@ -78,18 +82,17 @@ def read_enterp(file, ifile, i: int=0) -> bool:
     return True
 
 
-    
 def index(args: argparse.Namespace):
     global FILE_INDEX, PATH
 
     code = None
     size = 0
-    with open_local('cnpj.index', path=args.path, mode='wb') as ifile:
+    with open_local("cnpj.index", path=args.path, mode="wb") as ifile:
         ifile.write(f"{size:040d}".encode(ENCODING))
         for i in FILE_INDEX:
             fname = PATH.format(i)
-            print(f"Indexing <{fname}>", end='\r')
-            with open_local(fname, path=args.path, mode='rb') as file:
+            print(f"Indexing <{fname}>", end="\r")
+            with open_local(fname, path=args.path, mode="rb") as file:
                 while True:
                     try:
                         code = read_entry(file, ifile, i)
@@ -109,11 +112,11 @@ def index(args: argparse.Namespace):
     print("All files indexed." + " " * 40)
 
     print("Sorting Index")
-    with open_local('cnpj.index', path=args.path, mode='rb') as ifile:
+    with open_local("cnpj.index", path=args.path, mode="rb") as ifile:
         size = int(ifile.read(40).decode(ENCODING))
-        data = b''.join(sorted((ifile.read(40) for _ in range(size))))
+        data = b"".join(sorted((ifile.read(40) for _ in range(size))))
 
-    with open_local('cnpj.index', path=args.path, mode='wb') as ifile:
+    with open_local("cnpj.index", path=args.path, mode="wb") as ifile:
         ifile.write(f"{size:040d}".encode(ENCODING))
         ifile.write(data)
     print("Finished indexing data.")
