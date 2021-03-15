@@ -14,7 +14,8 @@ def table(args: argparse.Namespace):
         fields = ["cnpj", "matriz", "nome", "fantasia", "cnae", "cep", "cnaesec"]
         writer = csv.DictWriter(cfile, fields)
 
-        for entry in data["found"]:
+        for key in data["found"]:
+            entry = data["found"][key]
             writer.writerow(
                 {
                     "cnpj": entry["cnpj"],
