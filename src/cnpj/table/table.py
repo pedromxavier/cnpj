@@ -3,13 +3,14 @@ import csv
 import json
 import argparse
 
+
 def table(args: argparse.Namespace):
     with open(args.file, "r") as jfile:
         data: dict = json.load(jfile)
 
     fname, *_ = os.path.splitext(os.path.basename(args.file))
 
-    with open(f"{fname}.csv") as cfile:
+    with open(f"{fname}.csv", "w") as cfile:
         fields = ["cnpj", "matriz", "nome", "fantasia", "cnae", "cep", "cnaesec"]
         writer = csv.DictWriter(cfile, fields)
 
