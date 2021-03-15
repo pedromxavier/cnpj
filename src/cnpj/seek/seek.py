@@ -1,17 +1,24 @@
 import os
 import re
+import sys
 import json
 import math
 import argparse
 
-from ..cnpjlib import open_local
+from ..cnpjlib import open_local, ENCODING
 
 RE_CNPJ = re.compile(r'([0-9]{2})\.([0-9]{3})\.([0-9]{3})\/([0-9]{4})\-([0-9]{2})')
 
 PATH = r'K3241.K032001K.CNPJ.D01120.L000{:02d}'
 
+T_HEADER = sys.intern('0')
+T_ENTERP = sys.intern('1')
+T_PERSON = sys.intern('2')
+T_CNAESC = sys.intern('6')
+T_TRAILL = sys.intern('9')
+
 def find(ifile, keys: set, algorithm: str='bisect') -> list:
-    size = int(ifile.read(40).decode('utf-8'))
+    size = int(ifile.read(40).decode(ENCODING))
     if algorithm == 'bisect':
         print("Running bisection Algorithm on seek...")
         return list(bisect(ifile, 1, size, keys))
@@ -23,7 +30,7 @@ def find(ifile, keys: set, algorithm: str='bisect') -> list:
 
 def table(ifile, i: int) -> str:
     ifile.seek(40 * i)
-    return ifile.read(14).decode('utf-8')
+    return ifile.read(14).decode(ENCODING)
 
 def naive(ifile, i: int, n: int, keys: set):
     missing = keys.copy()
@@ -77,6 +84,7 @@ def bisect(ifile, i: int, k: int, keys: set):
 
 def retrieve(ifile, indices: list):
     global PATH
+    global T_CNAESC, T_ENTERP, T_HEADER, T_PERSON, T_TRAILL
 
     found = {}
     missing = []
@@ -85,7 +93,7 @@ def retrieve(ifile, indices: list):
             missing.append(item)
         else:
             ifile.seek(40 * item)
-            info = ifile.read(40).decode('utf-8')
+            info = ifile.read(40).decode(ENCODING)
 
             cnpj = info[ 0:14]
             fidx = info[14:16]
@@ -95,25 +103,57 @@ def retrieve(ifile, indices: list):
 
             with open(path, 'rb') as file:
                 file.seek(int(seek))
-                block = file.read(1200)
+                main_block = file.read(1200).decode(ENCODING)
 
-            found[cnpj] = read_block(block)
+                blocks = []
+                while True:
+                    #skip
+                    s = file.read(1).decode(ENCODING)
+                    if s == '\n' or s == '':
+                        block = file.read(1200).decode(ENCODING)
+                    else:
+                        raise ValueError(f'Invalid sep <{s}>')
+
+                    c = sys.intern(block[0])
+                    if c is T_ENTERP or c is T_HEADER or c is T_TRAILL:
+                        break
+                    elif c is T_PERSON:
+                        pass
+                    elif c is T_CNAESC:
+                        blocks.append(block)
+
+                    if s == '':
+                        break
+
+            found[cnpj] = {**read_block(main_block), **read_blocks(blocks)}
+
+
 
     return {
         'found': found,
         'missing': missing
     }
 
-def read_block(block: bytes):
-    info = block.decode('latin-1')
+def read_block(block: str):
     return {
-        'cnpj': info[3:17],
-        'matriz': (info[17] == '1'),
-        'nome': info[18:168].rstrip(' \n\t'),
-        'fantasia': info[168:223].rstrip(' \n\t'),
-        'cnae': info[375:382].rstrip(' \n\t'),
-        'cep': info[674:682].rstrip(' \n\t')
+        'cnpj': block[3:17],
+        'matriz': (block[17] == '1'),
+        'nome': block[18:168].rstrip(' \n\t'),
+        'fantasia': block[168:223].rstrip(' \n\t'),
+        'cnae': block[375:382].rstrip(' \n\t'),
+        'cep': block[674:682].rstrip(' \n\t')
     }
+
+def read_blocks(blocks: list):
+    cnaes = []
+    for block in blocks:
+        for i in range(17, 710, 7):
+            cnae = block[i:i+7]
+            if cnae == '0000000':
+                continue
+            else:
+                cnaes.append(cnae)
+    return {'cnaesec': cnaes}
 
 def seek(args: argparse.Namespace):
     global RE_CNPJ

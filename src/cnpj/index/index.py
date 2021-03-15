@@ -7,7 +7,7 @@ import argparse
 
 # RE_CNPJ = re.compile(r'([0-9]{2})\.([0-9]{3})\.([0-9]{3})\/([0-9]{4})\-([0-9]{2})')
 
-from ..cnpjlib import open_local
+from ..cnpjlib import open_local, ENCODING
 
 class ReadError(Exception):
     
@@ -30,7 +30,7 @@ FILE_INDEX = tuple(range(1, 21))
 def read_entry(file, ifile, i: int) -> (dict, bool):
     global T_HEADER, T_ENTERP, T_PERSON, T_CNAESC, T_TRAILL, ENDL
     # Entry Type
-    c = sys.intern(file.read(1).decode('utf-8'))
+    c = sys.intern(file.read(1).decode(ENCODING))
 
     if c is T_HEADER:
         code = read_header(file)
@@ -47,7 +47,7 @@ def read_entry(file, ifile, i: int) -> (dict, bool):
     else:
         raise ReadError(f"Invalid char <{c} @ {file.tell()}>")
 
-    c = sys.intern(file.read(1).decode('utf-8'))
+    c = sys.intern(file.read(1).decode(ENCODING))
 
     if not c: # trailing endl or EOF
         return None
@@ -68,9 +68,9 @@ def read_enterp(file, ifile, i: int=0) -> bool:
     # Discard some things
     file.seek(2, os.SEEK_CUR)
 
-    cnpj = file.read(14).decode('utf-8')
+    cnpj = file.read(14).decode(ENCODING)
 
-    ifile.write(f"{cnpj}{i:02d}{seek:024d}".encode('utf-8'))
+    ifile.write(f"{cnpj}{i:02d}{seek:024d}".encode(ENCODING))
 
     # Discard some things
     file.seek(1183, os.SEEK_CUR)
@@ -85,7 +85,7 @@ def index(args: argparse.Namespace):
     code = None
     size = 0
     with open_local('cnpj.index', path=args.path, mode='wb') as ifile:
-        ifile.write(f"{size:040d}".encode('utf-8'))
+        ifile.write(f"{size:040d}".encode(ENCODING))
         for i in FILE_INDEX:
             fname = PATH.format(i)
             print(f"Indexing <{fname}>", end='\r')
@@ -105,15 +105,15 @@ def index(args: argparse.Namespace):
                             continue
         else:
             ifile.seek(0)
-            ifile.write(f"{size:040d}".encode('utf-8'))
+            ifile.write(f"{size:040d}".encode(ENCODING))
     print("All files indexed." + " " * 40)
 
     print("Sorting Index")
     with open_local('cnpj.index', path=args.path, mode='rb') as ifile:
-        size = int(ifile.read(40).decode('utf-8'))
+        size = int(ifile.read(40).decode(ENCODING))
         data = b''.join(sorted((ifile.read(40) for _ in range(size))))
 
     with open_local('cnpj.index', path=args.path, mode='wb') as ifile:
-        ifile.write(f"{size:040d}".encode('utf-8'))
+        ifile.write(f"{size:040d}".encode(ENCODING))
         ifile.write(data)
     print("Finished indexing data.")
