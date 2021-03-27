@@ -6,6 +6,11 @@ import argparse
 def excel_str(s: object):
     return f'="{s}"'
 
+def cnpj_str(s: object, cnpj: bool=True):
+    if cnpj:
+        return r"{0}{1}.{2}{3}{4}.{5}{6}{7}/{8}{9}{10}{11}-{12}{13}".format(*s)
+    else:
+        return excel_str(s)
 
 def table(args: argparse.Namespace):
     with open(args.file, "r") as jfile:
@@ -22,7 +27,7 @@ def table(args: argparse.Namespace):
             entry = data["found"][key]
             writer.writerow(
                 {
-                    "cnpj": excel_str(entry["cnpj"]),
+                    "cnpj": cnpj_str(entry["cnpj"], cnpj=args.cnpj_format),
                     "matriz": "S" if entry["matriz"] else "N",
                     "nome": excel_str(entry["nome"]),
                     "fantasia": excel_str(entry["fantasia"]),

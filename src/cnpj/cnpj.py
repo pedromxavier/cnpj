@@ -33,8 +33,9 @@ def main() -> int:
     index_parser.set_defaults(func=index)
 
     table_parser = subparsers.add_parser("table")
+    table_parser.add_argument("file", type=str, action="store", help="Arquivo JSON.")
     table_parser.add_argument(
-        "file", type=str, action="store", help="Arquivo JSON."
+        "--format", dest="cnpj_format", action="store_true", help="Formatar cnpj."
     )
     table_parser.set_defaults(func=table)
 
