@@ -5,6 +5,8 @@ import re
 import time
 import argparse
 
+from tqdm import tqdm
+
 # RE_CNPJ = re.compile(r'([0-9]{2})\.([0-9]{3})\.([0-9]{3})\/([0-9]{4})\-([0-9]{2})')
 
 from ..cnpjlib import open_local, ENCODING
@@ -29,7 +31,7 @@ ENDL = sys.intern("\n")
 FILE_INDEX = tuple(range(1, 21))
 
 
-def read_entry(file, ifile, i: int) -> (dict, bool):
+def read_entry(file, ifile, i: int):
     global T_HEADER, T_ENTERP, T_PERSON, T_CNAESC, T_TRAILL, ENDL
     # Entry Type
     c = sys.intern(file.read(1).decode(ENCODING))
@@ -89,9 +91,8 @@ def index(args: argparse.Namespace):
     size = 0
     with open_local("cnpj.index", path=args.path, mode="wb") as ifile:
         ifile.write(f"{size:040d}".encode(ENCODING))
-        for i in FILE_INDEX:
+        for i in tqdm(FILE_INDEX, desc="Indexing"):
             fname = PATH.format(i)
-            print(f"Indexing <{fname}>", end="\r")
             with open_local(fname, path=args.path, mode="rb") as file:
                 while True:
                     try:
