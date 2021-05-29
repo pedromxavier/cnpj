@@ -176,6 +176,8 @@ def seek(args: argparse.Namespace):
 
     if not keys:
         return
+    else:
+        print(f"Searching for {len(keys)} keys.")
 
     with open_local("cnpj.index", path=args.path, mode="rb") as ifile:
         data = retrieve(ifile, find(ifile, keys, algorithm=args.algorithm))
